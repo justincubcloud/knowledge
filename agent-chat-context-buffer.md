@@ -1,6 +1,6 @@
 # Chat Context Buffer — Development Strategy
 
-> Roadmap item **#4** from `agent-chat-features-roadmap.md`  
+> Roadmap item **#4** from `agent-chat-features-roadmap.md` (Phase B — Auto-Compact)  
 > Architecture baseline: `agent-chat-system-architecture.md`  
 > Goal: show session context fullness (% used / % remaining) and auto-compact near the limit so long tool / multimodal threads stay predictable  
 > Status: **Phase A implemented** (visibility meter) — Phase B (auto-compact) not started  

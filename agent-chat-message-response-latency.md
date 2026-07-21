@@ -1,10 +1,10 @@
 # Per-Message Agent Response Latency — Development Strategy
 
-> Roadmap item **#4** from `agent-chat-features-roadmap.md`  
+> Roadmap item — **Completed (Phase A)** in `agent-chat-features-roadmap.md`  
 > Architecture baseline: `agent-chat-system-architecture.md`  
 > Sibling pattern: `agent-chat-context-buffer.md` (same messagemeta + `stream_end` + HMAC save pipeline)  
 > Goal: record wall-clock duration of each agent turn (ms), persist on the assistant message, expose via APIs / ChatV2 / admin so latency is inspectable per conversation and model  
-> Status: **Not started** — ship early so historical timing data starts accruing  
+> Status: **Phase A implemented** (capture + persist + ChatV2/guest bubble display) — Phase B (breakdown / admin aggregates) not started  
 > Last updated: 2026-07-20
 
 ---
@@ -252,18 +252,27 @@ When loading conversation history, if API returns `response_latency`, seed the s
 
 ## 9. Phased delivery
 
-### Phase A — Capture & persist (ship first)
+### Phase A — Capture & persist (ship first) ✅
 
 **Outcome:** Every successful agent assistant save has `response_latency`; `stream_end` carries `latency_ms`; message APIs expose it.
 
-1. Relay: turn stopwatch in WS (+ shared helper for `/relay/chat`)  
-2. Attach `latency_ms` on `stream_end` + HMAC body  
-3. WP: allow + normalize + save `response_latency` meta (auth + guest)  
-4. WP: hydrate on message responses (batch with token_usage)  
-5. Frontend types + hook; ChatV2 optional bubble display  
-6. Structured turn_complete log line  
+1. ✅ Relay: turn stopwatch in WS (+ shared helper for `/relay/chat`)  
+2. ✅ Attach `latency_ms` on `stream_end` + HMAC body  
+3. ✅ WP: allow + normalize + save `response_latency` meta (auth + guest)  
+4. ✅ WP: hydrate on message responses (batch with token_usage)  
+5. ✅ Frontend types + hook; ChatV2 (+ guest) bubble display  
+6. ✅ Structured log with `latency_ms` on stream_end / HTTP  
 
 **Exit criteria:** New agent replies in staging show meta in DB / REST; ChatV2 can display duration when wired; historical messages without meta remain valid.
+
+**Key files shipped:**
+- `cub-agent-chat-relay/src/response-latency.ts` — payload builder
+- `cub-agent-chat-relay/src/ws-server.ts` — stopwatch on auth + guest turns; save body
+- `cub-agent-chat-relay/src/index.ts` — `/relay/chat` HTTP parity
+- `cub-chat-wp/includes/message-meta.php` — normalize/save/parse/hydrate
+- `cub-chat-wp/public/api/relay-chat-save.php` + `relay-guest-chat-save.php`
+- `cubcloud.ai/lib/vireschatRelay.ts` + `hooks/useVireschatRelay.ts`
+- `cubcloud.ai/components/chat/ChatBubble.tsx` + ChatV2 / guest wiring
 
 ### Phase B — Breakdown & analytics
 
